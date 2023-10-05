@@ -1,58 +1,36 @@
-from datetime import datetime
-from airflow import DAG
-from airflow.operators.python_operator import PythonOperator
-from google.cloud import storage
 import pandas as pd
-from io import StringIO
-import json
+from google.cloud import storage
 
-def read_csv_to_json(bucket_name, file_name):
-    client = storage.Client()
-    bucket = client.bucket(bucket_name)
-    blob = storage.Blob(file_name, bucket)
-    content = blob.download_as_text()
+def read_gcs_to_dataframe(bucket_name, file_name):
+    # Inicializa el cliente de almacenamiento
+    storage_client = storage.Client()
 
-    # Leer el archivo CSV y almacenarlo en un DataFrame
-    df = pd.read_csv(StringIO(content))
+    # Obtiene el bucket
+    bucket = storage_client.bucket(bucket_name)
 
-    # Guardar el DataFrame en un archivo temporal
-    temp_file = "/tmp/temp_csv_file.csv"
-    df.to_csv(temp_file, index=False)
+    # Obtiene el blob (archivo) del bucket
+    blob = bucket.blob(file_name)
 
-    # Leer el archivo temporal y convertir a JSON
-    with open(temp_file, 'r') as file:
-        data = file.read()
+    # Descarga el contenido del blob a un archivo temporal
+    temp_file_path = f"/tmp/{file_name}"
+    blob.download_to_filename(temp_file_path)
 
-    # Eliminar el archivo temporal
-    os.remove(temp_file)
+    # Lee el archivo CSV en un DataFrame
+    df = pd.read_csv(temp_file_path)
 
-    return data
+    # Elimina el archivo temporal
+    os.remove(temp_file_path)
 
-default_args = {
-    'owner': 'airflow',
-    'depends_on_past': False,
-    'start_date': datetime(2023, 10, 4),
-    'retries': 1,
-}
+    return df
 
-dag = DAG(
-    'read_csv_to_dataframe_dag',
-    default_args=default_args,
-    description='Leer archivo CSV desde GCS y cargar en DataFrame',
-    schedule_interval='@once',
-)
-
-# Nombre del bucket y archivo CSV
+# Nombre del bucket y nombre del archivo a leer
 bucket_name = 'dataset_houses_for_sale'
 file_name = 'dataset_houses_for_sale.csv'
 
-# Definir el operador para ejecutar la función que lee el CSV y convierte a JSON
-read_csv_task = PythonOperator(
-    task_id='read_csv_task',
-    python_callable=read_csv_to_json,
-    op_args=[bucket_name, file_name],
-    dag=dag,
-)
+# Lee el archivo CSV desde Google Cloud Storage y carga en un DataFrame
+df = read_gcs_to_dataframe(bucket_name, file_name)
 
-# Establecer la dependencia del DAG
-read_csv_task
+# Realiza aquí tus pasos de limpieza y manipulación del DataFrame (df)
+
+# Ejemplo: muestra las primeras 5 filas del DataFrame
+print(df.head())
