@@ -5,7 +5,7 @@ from google.cloud import storage
 import pandas as pd
 from io import StringIO
 
-def read_csv_to_dataframe(bucket_name, file_name):
+def read_csv_to_json(bucket_name, file_name):
     client = storage.Client()
     bucket = client.bucket(bucket_name)
     blob = storage.Blob(file_name, bucket)
@@ -14,7 +14,13 @@ def read_csv_to_dataframe(bucket_name, file_name):
     # Leer el archivo CSV y almacenarlo en un DataFrame
     df = pd.read_csv(StringIO(content))
 
-    return df
+    # Convertir DataFrame a una lista de diccionarios
+    data = df.to_dict(orient='records')
+
+    # Convertir a JSON
+    json_data = json.dumps(data)
+
+    return json_data
 
 default_args = {
     'owner': 'airflow',
@@ -34,14 +40,16 @@ dag = DAG(
 bucket_name = 'dataset_houses_for_sale'
 file_name = 'dataset_houses_for_sale.csv'
 
-# Definir el operador para ejecutar la función que lee el CSV y carga en DataFrame
+# Definir el operador para ejecutar la función que lee el CSV y convierte a JSON
 read_csv_task = PythonOperator(
     task_id='read_csv_task',
-    python_callable=read_csv_to_dataframe,
+    python_callable=read_csv_to_json,
     op_args=[bucket_name, file_name],
     dag=dag,
 )
 
 # Establecer la dependencia del DAG
 read_csv_task
+
+
 
