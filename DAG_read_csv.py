@@ -4,6 +4,7 @@ from airflow.operators.python_operator import PythonOperator
 from google.cloud import storage
 import pandas as pd
 from io import StringIO
+import json
 
 def read_csv_to_json(bucket_name, file_name):
     client = storage.Client()
@@ -14,13 +15,18 @@ def read_csv_to_json(bucket_name, file_name):
     # Leer el archivo CSV y almacenarlo en un DataFrame
     df = pd.read_csv(StringIO(content))
 
-    # Convertir DataFrame a una lista de diccionarios
-    data = df.to_dict(orient='records')
+    # Guardar el DataFrame en un archivo temporal
+    temp_file = "/tmp/temp_csv_file.csv"
+    df.to_csv(temp_file, index=False)
 
-    # Convertir a JSON
-    json_data = json.dumps(data)
+    # Leer el archivo temporal y convertir a JSON
+    with open(temp_file, 'r') as file:
+        data = file.read()
 
-    return json_data
+    # Eliminar el archivo temporal
+    os.remove(temp_file)
+
+    return data
 
 default_args = {
     'owner': 'airflow',
@@ -50,6 +56,3 @@ read_csv_task = PythonOperator(
 
 # Establecer la dependencia del DAG
 read_csv_task
-
-
-
