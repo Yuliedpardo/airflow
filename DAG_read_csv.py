@@ -36,27 +36,39 @@ def modificadf():
     temp_file = '/tmp/{}'.format(file_name)
     blob.download_to_filename(temp_file)
 
+
+
+
+
+
     # Lee el archivo CSV y crea un DataFrame
     df = pd.read_csv(temp_file)
 
     #agrega una columna al archivo
-    df['prueba']= 0
-    
+    df['prueba']= 0 
+
+
+
+
+
+    #crea el nombre del nuevo archivo  
     file_m= 'dataset_houses_for_sale2.csv'
 
-    modificado='/tmp/{}'.format(file_m)
-    
+    #crear la ubicacion temporal para el nuevo archivo
+    modificado='/tmp/{}'.format(file_m) 
+
+    #guarda el nuevo archivo en la ubicacion creada   
     df.to_csv(modificado, index=False)
 
+    # Accede al archivo.
     blob2= bucket.blob(file_m)
-
+    
+    # carga el archivo en la ubicacion temporal
     blob2.upload_from_filename(modificado)
 
     # Elimina el archivo temporal.
     os.remove(temp_file)
     os.remove(modificado)
-
-
 
 
 
