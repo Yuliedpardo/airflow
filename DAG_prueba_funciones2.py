@@ -78,6 +78,12 @@ def save_data_cloud(df=None, bucket=None, temp_file=None):
 
 
 
+# Definimos el DAG
+dag = DAG(
+    dag_id='DAG-read-csv',
+    schedule_interval=None,
+)
+
 # Definimos los tasks
 task_get_data_cloud = PythonOperator(
     task_id='task_get_data_cloud',
