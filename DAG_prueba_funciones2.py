@@ -10,6 +10,8 @@ import base64
 import json
 import numpy as np
 
+start_date = datetime.datetime(2023, 10, 5)
+
 bucket_name = 'dataset_houses_for_sale'
 file_name = 'dataset_houses_for_sale.csv'
 nameDAG           = 'DAG-read-csv'
@@ -82,6 +84,7 @@ def save_data_cloud(df=None, bucket=None, temp_file=None):
 dag = DAG(
     dag_id='DAG-read-csv',
     schedule_interval=None,
+    start_date=start_date,
 )
 
 # Definimos los tasks
