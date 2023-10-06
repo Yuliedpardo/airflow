@@ -84,6 +84,8 @@ task_get_data_cloud = PythonOperator(
     python_callable=get_data_cloud,
 )
 
+task_get_data_cloud.dag = dag
+
 task_data_trans = PythonOperator(
     task_id='task_data_trans',
     python_callable=data_trans,
@@ -94,12 +96,5 @@ task_save_data = PythonOperator(
     python_callable=save_data_cloud,
 )
 
-# Definimos el DAG
-dag = DAG(
-    dag_id='DAG-read-csv',
-    schedule_interval=None,
-)
-
 # Conectamos los tasks
 task_get_data_cloud >> task_data_trans >> task_save_data
-
