@@ -36,20 +36,11 @@ def modificadf():
     temp_file = '/tmp/{}'.format(file_name)
     blob.download_to_filename(temp_file)
 
-
-
-
-
-
     # Lee el archivo CSV y crea un DataFrame
     df = pd.read_csv(temp_file)
 
     #agrega una columna al archivo
     df['prueba']= 0 
-
-
-
-
 
     #crea el nombre del nuevo archivo  
     file_m= 'dataset_houses_for_sale2.csv'
